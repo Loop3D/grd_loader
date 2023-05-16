@@ -13,7 +13,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 3. If this GRD has an associated xml file:
     * you can then just click on the OK button to load the grid. 
     * if not, manually enter the numeric EPSG code (e.g. *4326* for WGS 84 Lat/Long), then cick on the OK button.
-    * If you leave this field blank, it will assume teh EPSG code is 4326.   
+    * If you leave this field blank, it will assume the EPSG code is *4326*.   
 4. Layers loaded with this tool are ony stored in virtual memory, so you will need to save them to file if you want a presistant copy. 
 
 ## Credits    
