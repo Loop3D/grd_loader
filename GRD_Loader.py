@@ -219,8 +219,12 @@ class GrdLoader:
             if(os.path.exists(file_path+'.xml')):
                 epsg=extract_proj_str(file_path+'.xml')
                 if(epsg== None):
-                    epsg=4326
-                    self.iface.messageBar().pushMessage("No CRS found in XML, default to 4326", level=Qgis.Warning, duration=15)
+                    if not self.dlg.lineEdit_2.text():
+                        epsg=4326
+                        self.iface.messageBar().pushMessage("No CRS found in XML, default to 4326", level=Qgis.Warning, duration=15)
+                    else:
+                        epsg = int(self.dlg.lineEdit_2.text())
+                        self.iface.messageBar().pushMessage("CRS Read from manual input as "+str(epsg)+"", level=Qgis.Warning, duration=15)
                 else:
                     self.iface.messageBar().pushMessage("CRS Read from XML as "+epsg+", manual input ignored", level=Qgis.Info, duration=15)
             else:
