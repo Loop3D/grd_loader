@@ -195,6 +195,72 @@ class GrdLoader:
             self.dlg, "Select input file ","", '*.grd *.GRD')
         self.dlg.lineEdit.setText(filename)
 
+    def load_a_grid(self):
+        file_path = self.dlg.lineEdit.text()
+        if(os.path.exists(file_path+'.xml')):
+            epsg=extract_proj_str(file_path+'.xml')
+            if(epsg== None):
+                epsg=4326
+                self.iface.messageBar().pushMessage("No CRS found in XML, default to 4326", level=Qgis.Warning, duration=15)
+            else:
+                self.iface.messageBar().pushMessage("CRS Read from XML as "+epsg+", manual input ignored", level=Qgis.Info, duration=15)
+        else:
+            try:
+                epsg = int(self.dlg.lineEdit_2.text())
+            except:
+                epsg = 4326
+                self.iface.messageBar().pushMessage("No CRS Defined, assumed to be 4326", level=Qgis.Warning, duration=15)
+
+        #read geosoft binary grid and return components
+        #inputs:
+            #file_path: path to geosoft grid (str)
+            #epsg: EPSG projection ID (int)
+        #returns:
+            #header: header data (dict)
+            #grid: grid data (2D array of float32)
+
+        if(file_path !=''): 
+            if(not os.path.exists(file_path)):
+                self.iface.messageBar().pushMessage("File: "+file_path+" not found", level=Qgis.Warning, duration=3)
+            else:    
+                grid,header,Gdata_type=load_oasis_montaj_grid(file_path)
+                print(header)
+                                
+                path,name=ntpath.split(file_path)
+                fn='/vsimem/'+name[:-4]+'.tif'
+
+                driver=gdal.GetDriverByName('GTiff')
+                if(header["ordering"]==1):
+                    ds = driver.Create(fn,xsize=header["shape_e"],ysize=header["shape_v"],bands=1,eType=Gdata_type)
+                else:
+                    ds = driver.Create(fn,xsize=header["shape_v"],ysize=header["shape_e"],bands=1,eType=Gdata_type)
+
+                ds.GetRasterBand(1).WriteArray(grid)
+                geot=[header["x_origin"]-(header["spacing_e"]/2),
+                    header["spacing_e"],
+                    0,
+                    header["y_origin"]-(header["spacing_v"]/2),
+                    0,
+                    header["spacing_e"],
+                    ]
+                ds.SetGeoTransform(geot)
+                srs=osr.SpatialReference()
+
+                ds.SetProjection(srs.ExportToWkt())
+                ds=None
+                rlayer=self.iface.addRasterLayer(fn)
+                rlayer.setCrs( QgsCoordinateReferenceSystem('EPSG:'+str(epsg) ))
+                self.iface.messageBar().pushMessage("GRD file loaded as layer in memory, use export to save as file", level=Qgis.Success, duration=5)
+
+        else:
+            self.iface.messageBar().pushMessage("You need to select a file first", level=Qgis.Warning, duration=3)
+    
+    def define_tips(self):
+        Path_tooltip = '<p>Path to Geosoft Binary Grid</p>'
+        Epsg_tooltip = '<p>Coordinate Reference System Number, leave blank for default of 4326 or if XML file available</p>'
+        self.dlg.lineEdit.setToolTip(Path_tooltip)
+        self.dlg.pushButton.setToolTip(Path_tooltip)
+        self.dlg.lineEdit_2.setToolTip(Epsg_tooltip)
 
 
     def run(self):
@@ -206,6 +272,8 @@ class GrdLoader:
             self.first_start = False
             self.dlg = GrdLoaderDialog()
             self.dlg.pushButton.clicked.connect(self.select_input_file)
+        
+        self.define_tips()
 
         # show the dialog
         self.dlg.show()
@@ -215,61 +283,4 @@ class GrdLoader:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            file_path = self.dlg.lineEdit.text()
-            if(os.path.exists(file_path+'.xml')):
-                epsg=extract_proj_str(file_path+'.xml')
-                if(epsg== None):
-                    epsg=4326
-                    self.iface.messageBar().pushMessage("No CRS found in XML, default to 4326", level=Qgis.Warning, duration=15)
-                else:
-                    self.iface.messageBar().pushMessage("CRS Read from XML as "+epsg+", manual input ignored", level=Qgis.Info, duration=15)
-            else:
-                try:
-                    epsg = int(self.dlg.lineEdit_2.text())
-                except:
-                    epsg = 4326
-                    self.iface.messageBar().pushMessage("No CRS Defined, assumed to be 4326", level=Qgis.Warning, duration=15)
-
-            #read geosoft binary grid and return components
-            #inputs:
-                #file_path: path to geosoft grid (str)
-                #epsg: EPSG projection ID (int)
-            #returns:
-                #header: header data (dict)
-                #grid: grid data (2D array of float32)
-                
-            if(file_path !=''): 
-                if(not os.path.exists(file_path)):
-                    self.iface.messageBar().pushMessage("File: "+file_path+" not found", level=Qgis.Warning, duration=3)
-                else:    
-                    grid,header,Gdata_type=load_oasis_montaj_grid(file_path)
-                    print(header)
-                                    
-                    path,name=ntpath.split(file_path)
-                    fn='/vsimem/'+name[:-4]+'.tif'
-
-                    driver=gdal.GetDriverByName('GTiff')
-                    if(header["ordering"]==1):
-                        ds = driver.Create(fn,xsize=header["shape_e"],ysize=header["shape_v"],bands=1,eType=Gdata_type)
-                    else:
-                        ds = driver.Create(fn,xsize=header["shape_v"],ysize=header["shape_e"],bands=1,eType=Gdata_type)
-
-                    ds.GetRasterBand(1).WriteArray(grid)
-                    geot=[header["x_origin"]-(header["spacing_e"]/2),
-                        header["spacing_e"],
-                        0,
-                        header["y_origin"]-(header["spacing_v"]/2),
-                        0,
-                        header["spacing_e"],
-                        ]
-                    ds.SetGeoTransform(geot)
-                    srs=osr.SpatialReference()
-
-                    ds.SetProjection(srs.ExportToWkt())
-                    ds=None
-                    rlayer=self.iface.addRasterLayer(fn)
-                    rlayer.setCrs( QgsCoordinateReferenceSystem('EPSG:'+str(epsg) ))
-                    self.iface.messageBar().pushMessage("GRD file loaded as layer in memory, use export to save as file", level=Qgis.Success, duration=5)
-
-            else:
-                self.iface.messageBar().pushMessage("You need to select a file first", level=Qgis.Warning, duration=3)
+            self.load_a_grid()    
