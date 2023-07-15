@@ -194,8 +194,9 @@ class GrdLoader:
         filename, _filter = QFileDialog.getOpenFileName(
             self.dlg, "Select input file ","", '*.grd *.GRD')
         self.dlg.lineEdit.setText(filename)
+    
 
-    def load_a_grid(self):
+    def load_a_grid(self,proj):
         file_path = self.dlg.lineEdit.text()
         if(os.path.exists(file_path+'.xml')):
             epsg=extract_proj_str(file_path+'.xml')
@@ -205,9 +206,9 @@ class GrdLoader:
             else:
                 self.iface.messageBar().pushMessage("CRS Read from XML as "+epsg+", manual input ignored", level=Qgis.Info, duration=15)
         else:
-            try:
-                epsg = int(self.dlg.lineEdit_2.text())
-            except:
+            if(proj.isValid()):
+                epsg = proj.authid().split(':')[1]
+            else:
                 epsg = 4326
                 self.iface.messageBar().pushMessage("No CRS Defined, assumed to be 4326", level=Qgis.Warning, duration=15)
 
@@ -257,13 +258,14 @@ class GrdLoader:
     
     def define_tips(self):
         Path_tooltip = '<p>Path to Geosoft Binary Grid</p>'
-        Epsg_tooltip = '<p>Coordinate Reference System Number, leave blank for default of 4326 or if XML file available</p>'
+        Epsg_tooltip = '<p>Coordinate Reference System , leave blank for default of EPSG:4326 or if XML file available</p>'
         self.dlg.lineEdit.setToolTip(Path_tooltip)
         self.dlg.pushButton.setToolTip(Path_tooltip)
-        self.dlg.lineEdit_2.setToolTip(Epsg_tooltip)
+        self.dlg.mQgsProjectionSelectionWidget.setToolTip(Epsg_tooltip)
 
 
     def run(self):
+        from qgis.gui import QgsProjectionSelectionWidget
         """Run method that performs all the real work"""
 
         # Create the dialog with elements (after translation) and keep reference
@@ -272,7 +274,7 @@ class GrdLoader:
             self.first_start = False
             self.dlg = GrdLoaderDialog()
             self.dlg.pushButton.clicked.connect(self.select_input_file)
-        
+
         self.define_tips()
 
         # show the dialog
@@ -283,4 +285,6 @@ class GrdLoader:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            self.load_a_grid()    
+            proj=self.dlg.mQgsProjectionSelectionWidget.crs()
+            print(proj.authid())
+            self.load_a_grid(proj)    

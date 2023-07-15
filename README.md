@@ -11,7 +11,9 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 1. Once the QGIS *grd_loader* Plugin is installed, click on the ![grd_icon](icon.png) icon from the Plugins Toolbar.   
 2. From here you can search for a GRD format file and load it as a raster grid.   
 3. If this GRD has an associated xml file you can then just click on the OK button to load the grid. 
-4. If no XML is present, manually enter the numeric EPSG code (e.g. 4326 = WGS 84 Lat/Long), then cick on the OK button.    
+4. If no XML is present, select a projection from the dropdown menu or projection button, then cick on the OK button to laod the grid.    
+
+ ![waxi_qf dialog](dialog.png) 
 
 ## Credits    
 Plugin construction-Mark Jessell using QGIS Plugin Builder Plugin    
