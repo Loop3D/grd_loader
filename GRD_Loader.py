@@ -274,7 +274,7 @@ class GrdLoader:
             self.first_start = False
             self.dlg = GrdLoaderDialog()
             self.dlg.pushButton.clicked.connect(self.select_input_file)
-
+            self.dlg.mQgsProjectionSelectionWidget.setCrs(QgsCoordinateReferenceSystem('EPSG:4326'))
         self.define_tips()
 
         # show the dialog
