@@ -425,13 +425,15 @@ def extract_proj_str(fname):
             if "wellknown_epsg=" in line:
 
                 # extract projection string
-                proj = line.split('wellknown_epsg="')[1].split('" ')[0]
+                #proj = line.split('wellknown_epsg="')[1].split('" ')[0]
+                proj = line.split('wellknown_epsg="')
+                if(len(proj)>1):
+                    proj=proj[1].split('" ')[0]
+                    # remove non-alphanumeric characters if present
+                    if proj.isalnum() is False:
+                        proj = ''.join(filter(str.isalnum, proj))
 
-                # remove non-alphanumeric characters if present
-                if proj.isalnum() is False:
-                    proj = ''.join(filter(str.isalnum, proj))
-
-                assert proj.isalnum
+                    assert proj.isalnum
     try:
         proj
     except:
