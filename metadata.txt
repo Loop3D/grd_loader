@@ -6,7 +6,7 @@
 name=GRD_Loader
 qgisMinimumVersion=3.0
 description=Load GRD Format Rasters
-version=0.1.1
+version=0.1.2
 author=Mark Jessell
 email=mark.jessell@uwa.edu.au
 

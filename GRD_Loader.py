@@ -190,47 +190,34 @@ class GrdLoader:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    # select grd file and attempt to extract CRS from xml file
     def select_input_file(self):
         filename, _filter = QFileDialog.getOpenFileName(
             self.dlg, "Select input file ","", '*.grd *.GRD')
         self.dlg.lineEdit.setText(filename)
     
-
-    def load_a_grid(self,proj):
-        file_path = self.dlg.lineEdit.text()
-
-        if(os.path.exists(file_path+'.gi')):
-            file = open(file_path+'.gi', "rb")
-            # Reading the first three bytes from the binary file
-            data = file.read(4)
-            # Printing data by iterating with while loop
-            for i in range(0,1):
-                data = file.read(4)
-            # Close the binary file
-            file.close()        
-        
-        if(os.path.exists(file_path+'.xml')):
-            epsg=extract_proj_str(file_path+'.xml')
+        if(os.path.exists(filename+'.xml')):
+            epsg=extract_proj_str(filename+'.xml')
             if(epsg== None):
                 epsg=4326
                 self.iface.messageBar().pushMessage("No CRS found in XML, default to 4326", level=Qgis.Warning, duration=15)
             else:
-                self.iface.messageBar().pushMessage("CRS Read from XML as "+epsg+", manual input ignored", level=Qgis.Info, duration=15)
+                self.iface.messageBar().pushMessage("CRS Read from XML as "+epsg, level=Qgis.Info, duration=15)
+        self.dlg.mQgsProjectionSelectionWidget.setCrs(QgsCoordinateReferenceSystem('EPSG:'+str(epsg)))
+        return (epsg)
+
+    #load grd file
+    def load_a_grid(self,proj):
+        file_path = self.dlg.lineEdit.text()
+
+        #check if projection is valid
+        if(proj.isValid()):
+            epsg = proj.authid().split(':')[1]
         else:
-            if(proj.isValid()):
-                epsg = proj.authid().split(':')[1]
-            else:
-                epsg = 4326
-                self.iface.messageBar().pushMessage("No CRS Defined, assumed to be 4326", level=Qgis.Warning, duration=15)
+            epsg = 4326
+            self.iface.messageBar().pushMessage("No CRS Defined, assumed to be 4326", level=Qgis.Warning, duration=15)
 
-        #read geosoft binary grid and return components
-        #inputs:
-            #file_path: path to geosoft grid (str)
-            #epsg: EPSG projection ID (int)
-        #returns:
-            #header: header data (dict)
-            #grid: grid data (2D array of float32)
-
+        #load grd file and store in memory
         if(file_path !=''): 
             if(not os.path.exists(file_path)):
                 self.iface.messageBar().pushMessage("File: "+file_path+" not found", level=Qgis.Warning, duration=3)
@@ -277,13 +264,14 @@ class GrdLoader:
         from qgis.gui import QgsProjectionSelectionWidget
         """Run method that performs all the real work"""
 
+
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
         if self.first_start == True:
             self.first_start = False
             self.dlg = GrdLoaderDialog()
-            self.dlg.pushButton.clicked.connect(self.select_input_file)
-            self.dlg.mQgsProjectionSelectionWidget.setCrs(QgsCoordinateReferenceSystem('EPSG:4326'))
+            epsg=self.dlg.pushButton.clicked.connect(self.select_input_file)
+            self.dlg.mQgsProjectionSelectionWidget.setCrs(QgsCoordinateReferenceSystem('EPSG:'+str(epsg)))
         self.define_tips()
 
         # show the dialog
