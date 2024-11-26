@@ -202,7 +202,7 @@ class GrdLoader:
                 epsg=4326
                 self.iface.messageBar().pushMessage("No CRS found in XML, default to 4326", level=Qgis.Warning, duration=15)
             else:
-                self.iface.messageBar().pushMessage("CRS Read from XML as "+epsg, level=Qgis.Info, duration=15)
+                self.iface.messageBar().pushMessage("CRS Read from XML as "+str(epsg), level=Qgis.Info, duration=15)
         self.dlg.mQgsProjectionSelectionWidget.setCrs(QgsCoordinateReferenceSystem('EPSG:'+str(epsg)))
         return (epsg)
 
@@ -222,7 +222,7 @@ class GrdLoader:
             if(not os.path.exists(file_path)):
                 self.iface.messageBar().pushMessage("File: "+file_path+" not found", level=Qgis.Warning, duration=3)
             else:    
-                grid,header,Gdata_type=load_oasis_montaj_grid(file_path)
+                grid,header,Gdata_type=load_oasis_montaj_grid_optimized(file_path)
                                 
                 path,name=ntpath.split(file_path)
                 fn='/vsimem/'+name[:-4]+'.tif'
