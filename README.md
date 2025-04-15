@@ -1,6 +1,8 @@
 # grd_loader 0.1.3  
 
-Plugin to load a Geosoft(c) GRD format single-band raster file as a temporary QGIS raster layer    
+Plugin to load a Geosoft(c) GRD format single-band raster file as a temporary QGIS raster layer 
+   
+A version of this code is included in the more comprehensive <a href="https://github.com/swaxi/SGTool">SGTool QGIS Plugin</a> that provides multiple tools for the processing of geophysical grids.
    
 ## Install   
 
