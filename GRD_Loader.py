@@ -277,8 +277,10 @@ class GrdLoader:
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
+        try:
+            result = self.dlg.exec()  # Qt6
+        except AttributeError:
+            result = self.dlg.exec_()  # Qt5 fallback        # See if OK was pressed
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
